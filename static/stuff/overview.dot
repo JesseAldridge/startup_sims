@@ -1,0 +1,34 @@
+digraph G {
+    "main" -> firebase [label="loads config"]
+    "main" -> "monte carlo" [label="calls"]
+    "main" -> "render curr graph set" [label="calls"]
+    "render curr graph set" -> "plot data" [label="calls"]
+    "monte carlo" -> "new graph set" [label="calls"]
+
+    "monte carlo" -> "single simulation" [label="for each plan, run many"]
+    "single simulation" -> "step world" [label="for many days"]
+    "step world" -> "subtract expenses" [label="first of the month"]
+    "step world" -> "select task" [label="calls"]
+    "step world" -> "step task" [label="calls"]
+
+    "Plan" -> "select task" [label="defines method"]
+    "select task" -> "Task" [label="returns"]
+    "plot data" -> "all graph data" [label="displays"]
+    "step world" -> "new graph value" [label="calls"]
+    "new graph set" -> "all graph data" [label="add graph set"]
+    "new graph value" -> "all graph data" [label="add value"]
+    Task -> "step task" [label="defines"]
+    "step task" -> world [label="affects"]
+    "subtract expenses" -> world [label="affects"]
+
+    "user" -> modifiable [label="modifies"]
+    modifiable -> mod_types
+    mod_types -> Task [label="defines many"]
+    mod_types -> Plan
+    mod_types -> World
+    mod_types -> Utilities
+    mod_types -> Vars
+    modifiable -> firebase [label="sync changes"]
+
+    Task -> World [label="store state"]
+}

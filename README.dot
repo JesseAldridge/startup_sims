@@ -1,0 +1,67 @@
+digraph G {
+  "serve.py" -> "index.html" [label="renders"]
+  "index.html" -> "#next_page" [label="contains"]
+  "index.html" -> "input" [label="contains many"]
+  "index.html" -> ".plan_div" [label="contains"]
+  "index.html" -> "radio buttons" [label="contains"]
+
+  "radio buttons" -> plan [label="used to select"]
+  plan -> monte_carlo [label="passed to"]
+
+  "index.html" -> "editors" [label="init obj"]
+  "index.html" -> add_editors [label="calls"]
+  "index.html" -> gen_graph [label="calls"]
+
+  "sim group" -> add_editors [label="passed to"]
+
+  "sim group" -> template [label="has"]
+  "sim group" -> "sim class" [label="has many"]
+  "sim group" -> "editor container" [label="has"]
+  "sim class" -> code [label="contains"]
+  "sim class" -> editor [label="has"]
+  editor -> editor [label="eval on change"]
+  code -> editor [label="added to"]
+
+  template -> "editor container" [label="rendered to"]
+  "class name" -> template [label="passed to"]
+
+
+  ".plan_div" -> gen_graph [label="on click"]
+  input -> gen_graph [label="on change"]
+
+  "#next_page" -> change_page [label="on click"]
+  change_page -> gen_graph [label="calls"]
+  gen_graph -> user_code [label="inits obj"]
+  user_code -> editors [label="pulled from"]
+  gen_graph -> worker [label="create"]
+  worker -> "monte_carlo.js" [label="runs"]
+  "monte_carlo.js" -> "monte_carlo" [label="calls"]
+  "monte_carlo" -> editor [label="eval each"]
+  "monte_carlo" -> new_graph_set [label="calls"]
+  "monte_carlo" -> single_simulation [label="calls"]
+
+  single_simulation -> plan [label="reset"]
+  single_simulation -> new_graph_line [label="calls"]
+  single_simulation -> world [label="create new"]
+  single_simulation -> create_tasks [label="call"]
+  single_simulation -> step_world [label="for each day"]
+
+  step_world -> world [label="subtract money"]
+  step_world -> select_task [label="call"]
+  step_world -> new_graph_value [label="pass money"]
+  step_world -> step_task [label="pass world"]
+
+  task -> step_task [label="has method"]
+
+  plan -> select_task [label="has method"]
+  plan -> task_names [label="has list"]
+
+  world -> select_task [label="passed to"]
+
+  world -> create_tasks [label="has method"]
+
+
+  new_graph_line -> graph_set [label="add layer to"]
+  new_graph_set -> graph_set [label="init"]
+
+}

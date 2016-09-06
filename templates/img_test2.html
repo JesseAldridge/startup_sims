@@ -1,0 +1,23 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<style>
+.inner_text { position: relative; margin-top:45%; }
+.loading_img { position: relative; margin-top:30%;  }
+.outer { 
+    border: solid 1px; cursor: pointer; width:420px; height:243px; 
+}
+</style>
+
+<div class='outer'>
+    <img class="loading_img" src="http://cdn.jsdelivr.net/wp-advanced-ajax-page-loader/2.5.12/loaders/Atom%20Loading.gif">
+</div>
+
+<div class='outer'>
+    <div class='inner_text'>Click to generate graph.</div>
+</div>
+
+<script>
+function start_loading() {
+    $(this).html('<img class="loading_img" src="http://cdn.jsdelivr.net/wp-advanced-ajax-page-loader/2.5.12/loaders/Atom%20Loading.gif">')
+}
+$(document).on('click', '.outer', start_loading)
+</script>

@@ -1,0 +1,13 @@
+[
+    PlanName:{
+        money: {
+            layers: [
+                [[date, value], [date, value], ...2500 pairs],
+                [...],
+                ...100 layers
+            ]
+        },
+        work_done: { same }
+    },
+    OtherPlan: { same }
+]

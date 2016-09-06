@@ -1,0 +1,383 @@
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.time.min.js'></script>
+
+<script src='http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.js'></script>
+
+<script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/smoothness/jquery-ui.css"/>
+
+<script src="static/utilities.js"></script>
+<script src="static/plans.js"></script>
+<script src="static/tasks.js"></script>
+<script src="static/graphs.js"></script>
+<script src="static/world.js"></script>
+
+<style>
+.graph{ width:400; height:200; }
+.graph_placeholder {
+    width:420px; height:243px;  background-color: #ddd; cursor: pointer;
+}
+.graph_placeholder:hover {
+    background-color: #eee
+}
+.loading_img { position: relative; margin-top:20%; }
+.plan_div { 
+    box-shadow:-2px 2px 6px #aaa; padding: 10px; 
+    cursor: pointer; width:420px; height:243px; text-align: center;
+    margin-bottom:23
+}
+.header {
+    text-align: left;
+    border-bottom: solid 1px;
+    padding-bottom: 5px;
+    border-color: #666;
+    margin-bottom: 10px;
+}
+.survival {float:right}
+.label_span {margin-right: 5px }
+.label{display: inline}
+.editor { 
+    position: relative;
+    width: 600px;
+    height: 200px;
+    border: solid 1px;
+}
+/*button {width:30; text-align: center; padding-left:0; padding-right: 0}*/
+.arg {width:50}
+#plans_div{ margin-bottom: 20 }
+
+body {font-family:Helvetica}
+.main_container { width:1500 }
+.main_column {
+    width:485; float:left; margin-right: 22; background-color: white;
+    padding:20; margin-bottom:12;
+}
+.narrative_heading { font-size:200%; }
+.narrative { font-size:140%; margin-top:10px; margin-bottom: 10 }
+
+.vars_form {
+    position:relative; background-color:#eee; padding:11; width:400;
+    transition: width .1s;
+}
+.vars_form > div {margin:2; }
+.vars_form > .code_group {margin-top:15}
+.vars_form > #vars_min {display: none}
+.vars_wide {width:650}
+.vars_wide > #vars_min {display: inline}
+#vars_min {position:absolute; right:4; top:4}
+
+/*
+#export_button {width:auto; position: absolute; right:4; bottom:4}
+#export_dialog {display:none}
+#export_dialog > textarea {width:100%; height:100%; font-size:70%}
+*/
+.page {display:none}
+
+button { cursor: pointer; }
+button[disabled] { cursor: default }
+</style>
+
+<body>
+<div class="main_container">
+<div class="main_column" id='main_left'>
+    <div class='plan_div graph_placeholder'>
+    </div>
+    <div class='vars_form'>
+        <button id='vars_min'>-</button>
+        <div class='var_row'>You start with $<input class='arg' id='dollars' value='50000'> in the bank.
+        </div>
+        <div class='var_row'>You start with <input class='arg' id='num_cofounders' value='0'> cofounders.</div>
+        <div class='var_row'>We will simulate <input class='arg' id='num_years' value='10'> years.</div>
+        <div class='var_row'>We will run this simulation <input class='arg' id='num_sims' value='100'> times.</div>
+        <div class='code_group' id='plans_div'>Selected plan: </div>
+        <div class='code_group' id='tasks_div'>Modify tasks: </div>
+        <!-- <button id='export_button'>export</button> -->
+    </div>
+</div>
+
+<div class='page' id='page1' plan='HistoricalPlan'>
+    <div class='narrative_heading'>Behold, the Ghost of Christmas Future.</div>
+
+    <div class='narrative'>Well, of my future anyway.  This is a simulator.  It uses the <a href="http://en.wikipedia.org/wiki/Monte_Carlo_method" target="_blank">Monte Carlo method</a> to forecast the outcome of a startup.</div>
+
+    <div class='narrative'>The arrow buttons below will walk you through a series of simulations.  The results will be displayed in the graph to the left.  Each simulation is run many times, and each line in the graph represents a single run.  (If you only see a couple of lines, that means a couple of breakout successes have completely dwarfed the other runs.)</div>
+
+    <div class='narrative'>You can click the graph to rerun the simulation.  Use the buttons below to continue this explanation.</div>
+</div>
+
+<div class='page' id='page2' plan='HistoricalPlan'>
+    <div class='narrative'>In this first example, I simply continue to work as I have in the past.  That is, I build stuff.  I work on whatever seems reasonable at the time, while occasionally making half-hearted efforts at finding a cofounder.</div>
+
+    <div class='narrative'>As you can see, the expected outcome is not so good.  This graph tends to show a survival rate of zero to five percent, which means I'm probably going to run out of money.</div>
+
+    <div class='narrative'>What can I do to improve my chances?</div>    
+</div>
+
+<div class='page' id='page3' plan='StandardPlan'>
+    <div class='narrative'>This is what I would call the Standard Plan, recommended by startup experts.  It basically goes:  1. Find a cofounder, 2. Build a prototype, 3. Raise money, 4. Make something people want.</div>
+
+    <div class='narrative'>As you can see, this graph shows a much greater survival rate.  But one thing that's missing is the exponential curve the previous graph had.  Why is it missing?</div>
+
+    <div class='narrative'>You can click the plus button to the left of each plan to see the code it uses.  For each simulated day, the simulator calls select_task on the current plan and the returned task is what is worked on for that day.</div>
+
+    <div class='narrative'>As you can see, in the HistoricalPlan, I would sometimes spend a day improving my productivity.  I never do that in the StandardPlan.  What happens if I do?</div>
+</div>
+
+<div class='page' id='page4' plan='StandardImprove'>
+    <div class='narrative'>There's the best of both worlds.</div>  
+
+    <div class='narrative'>Now, this is where people tend to start looking at me funny.  Can we really expect to get exponential returns from semi-daily productivity improvement over a ten year period?  Honestly, I'm not sure.  But maybe.</div>
+
+    <div class='narrative'>I think the proposition is actually pretty modest.  If you look at the code for the ImproveProductivity task you can see the claim is that if I spend an entire day working on improving my productivity I have a 50% chance of improving it by 1%.</div>
+
+    <div class='narrative'>By the way, you can edit the code in any of those widgets if you want to experiment with different parameters.  Let me know if you produce any interesting results.</div>
+
+    <div class='narrative'>~ <a href='http://JesseAldridge.com'>JesseAldridge.com</a></div>
+</div>
+
+<div class='main_column' id='main_right'>
+    <div id='narrative_container' curr_page='0'></div>
+    <button id='prev_page'>&lt;</button>
+    <button id='next_page'>&gt;</button>
+</div>
+</div>
+
+<!-- <div id="export_dialog" title="Export">
+  <textarea></textarea>
+</div>
+ -->
+</body>
+
+<script id="plan_tmpl" type="text/x-jquery-tmpl">
+    <div>
+        <button class='expand_button'>+</button>
+        <input type='radio' name='plan'>
+        <span class='label_span'>${class_name}</span>
+        <div class='editor'></div>
+    </div>
+</script>
+
+<script id="task_tmpl" type="text/x-jquery-tmpl">
+    <div>
+        <button class='expand_button'>+</button>
+        <span class='label_span'>${class_name}</span>
+        <div class='editor'></div>
+    </div>
+</script>
+
+<script>
+
+function change_page(inc) {
+    console.log('old_curr:', $('#narrative_container').attr('curr_page'))
+    var curr_page = parseFloat($('#narrative_container').attr('curr_page'))
+    curr_page += inc
+    if(curr_page <= 1) {
+        $('#prev_page').attr('disabled', 'disabled')
+        curr_page = 1
+    }
+    else
+        $('#prev_page').removeAttr('disabled')
+    if($('#page' + (curr_page + 1)).length == 0)
+        $('#next_page').attr('disabled', 'disabled')
+    else
+        $('#next_page').removeAttr('disabled')
+    if(curr_page <= 0)
+        return
+    console.log('curr_page:', curr_page)
+    var page_div = $('#page' + curr_page)
+    $('#narrative_container').html(page_div.html())
+    $('#narrative_container').attr('curr_page', curr_page)
+    var plan_name = page_div.attr('plan')
+    var selector = $('.label_span').filter(function() {
+        return $(this).text() == plan_name
+    }).prev().prop('checked', true)
+    gen_graph()
+}
+
+$('#next_page').click(function(){ change_page(1) })
+$('#prev_page').click(function(){ change_page(-1) })
+change_page(1)
+
+function gen_graph() {
+    var plan_name = $('input:radio:checked').next().text();
+    if(plan_name.length == 0)
+        return;
+
+    console.log('gen_graph, plan_name:', plan_name);
+
+    $('.plan_div').html(
+        '<img class="loading_img" src="http://cdn.jsdelivr.net/wp-advanced-aja' +
+        'x-page-loader/2.5.12/loaders/Atom%20Loading.gif"></img>');
+
+    var myWorker = new Worker("static/monte_carlo.js");
+
+    myWorker.onmessage = function (e) {
+        if(e.data.name == 'render_curr_graph_set') {
+            all_graph_data = e.data.all_graph_data
+            for(var i in e.data.worlds) {
+                var new_world = new World()
+                for(var key in e.data.worlds[i])
+                    new_world[key] = e.data.worlds[i][key]
+                e.data.worlds[i] = new_world
+            }
+            render_curr_graph_set(
+                plan_name, e.data.worlds, ['money'], '.plan_div')
+            $('.plan_div').removeClass('graph_placeholder')
+        }
+        else if(e.data.type == 'debug') {
+            console.log('debug', e.data.msg)
+        }
+    }
+
+    var user_code = {}
+    for(var key in editors)
+        user_code[key] = editors[key].getSession().getValue()
+
+    console.log('user_code:', user_code)
+
+    myWorker.postMessage({
+        plan_name:plan_name,
+        num_sims:parseFloat($('#num_sims').val()),
+        starting_cash:parseFloat($('#dollars').val()),
+        starting_workers:parseFloat($('#num_cofounders').val()) + 1,
+        years_to_sim:parseFloat($('#num_years').val()),
+        num_simulations:parseFloat($('#num_sims').val()),
+        user_code:user_code
+    })
+}
+$('input').change(gen_graph)
+$(document).on('change', 'input', gen_graph)
+$(document).on('click', '.plan_div', gen_graph)
+var editors = {}
+
+function add_editors(class_names, tmpl_sel, container_sel) {
+    for(var i in class_names) {
+        var class_name = class_names[i]
+        var json = { class_name:class_name }
+        $(container_sel).append($(tmpl_sel).tmpl(json))
+        var edit_div = $('.editor').last()
+        var editor = ace.edit(edit_div[0])
+        var class_ = eval(class_name)
+        var code = class_.toString() + '\n\n'
+        var func_templ = '(class_name).prototype.(key) = (code)\n\n'
+        for(var key in class_.prototype)
+            code += func_templ.replace(
+                '(class_name)', class_name).replace('(key)', key).replace(
+                '(code)', class_.prototype[key].toString())
+        editor.getSession().setValue(code)
+        editor.getSession().setMode("ace/mode/javascript")
+        editors[class_name] = editor
+        editor.on('change', function(edit_div) {
+            var class_name = edit_div.siblings('.label_span').text()
+            return function(e) {
+                clearTimeout(window.save_timeout)
+                window.save_timeout = setTimeout(function() {
+                    try {
+                        (function() {
+                            eval.apply(this, arguments)
+                        }(editors[class_name].getSession().getValue()))
+                    } catch (e) {
+                        console.log('catch')
+                        $(edit_div).css({'background-color':'#fdd'})
+                        throw e
+                        return
+                    }
+                    console.log('done')
+                    $(edit_div).css({'background-color':'#fff'})
+                }, 500)
+            }
+        }(edit_div))
+        edit_div.hide()
+    }
+}
+
+
+add_editors(plan_names, '#plan_tmpl', '#plans_div')
+add_editors(task_names, '#task_tmpl', '#tasks_div')
+
+$('input:radio')[0].checked = true
+var num_expanded = 0
+$(document).on('click', '.expand_button', function() {
+    var editor_div = $(this).siblings('.editor')
+    if($(this).text() == '-') {
+        hide_div(editor_div)
+        return
+    }
+    num_expanded++
+    $(this).text('-')
+    if(num_expanded == 1)
+        $('.vars_form').addClass('vars_wide')
+    editor_div.slideDown(400, function(plan_name) {
+        return function() {
+            var editor = editors[plan_name]
+            editor.resize()
+            editor.renderer.updateFull() 
+        }
+    }($(this).siblings('.label_span').text()))
+})
+
+$('#vars_min').click(function() {
+    var editor_divs = $('.editor')
+    for(var i = 0; i < editor_divs.length; i++)
+        hide_div($(editor_divs[i]))
+    console.log('done hiding all')
+})
+
+function hide_div(editor_div) {
+    var button = $($(editor_div).siblings('.expand_button'))
+    if(button.text() != '-')
+        return
+    button.text('+')
+    editor_div.slideUp(function() {
+        num_expanded--
+        if(num_expanded == 0)
+            $('.vars_form').removeClass('vars_wide')
+    })
+}
+
+// $('#export_button').click(function() {
+
+//     // Gather all the parameters into a json object.
+
+//     var new_sim = {}
+//     var inputs = $('.var_row > input')
+//     for(var i = 0; i < inputs.length; i++) {
+//         var input = $(inputs[i])
+//         new_sim[input.attr('id')] = parseFloat(input.val())
+//     }
+//     var types = ['plans', 'tasks']
+//     for(var i in types) {
+//         var type = types[i]
+//         new_sim[type] = {}
+//         for(var key in editors)
+//             new_sim[type][key] = editors[key].getSession().getValue()
+//     }
+//     $('#export_dialog > textarea').val(JSON.stringify(new_sim))
+//     $('#export_dialog').dialog({width:500, height:500, position:[100,100]})
+// })
+
+// Prevent the backspace key from navigating back.
+$(document).unbind('keydown').bind('keydown', function (event) {
+    var doPrevent = false;
+    if (event.keyCode === 8) {
+        var d = event.srcElement || event.target;
+        if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE')) 
+             || d.tagName.toUpperCase() === 'TEXTAREA') {
+            doPrevent = d.readOnly || d.disabled;
+        }
+        else {
+            doPrevent = true;
+        }
+    }
+
+    if (doPrevent) {
+        event.preventDefault();
+    }
+});
+
+gen_graph()
+</script>

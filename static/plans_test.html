@@ -1,0 +1,24 @@
+
+<script src="random.js"></script>
+<script src="plans.js"></script>
+<script src="world.js"></script>
+<script src="tasks.js"></script>
+<script>
+    var world = new World()
+    for(var i in plan_classes) {
+        var plan = new plan_classes[i]()
+        for(_ = 0; _ < 100; _++)
+            plan.select_task(world)
+    }
+
+    for(var i in task_names) {
+        var task = eval('new ' + task_names[i] + '(world)')
+        task.step_task(world)
+    }
+    console.log('world.productivity:', world.productivity)
+
+    for(var task_cls in world.tasks) {
+        world.delete_task(world.tasks[task_cls])
+        break
+    }
+</script>

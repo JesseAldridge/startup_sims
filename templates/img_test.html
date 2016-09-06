@@ -1,0 +1,20 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<style>
+.inner { position: relative; top:45%; display: inline-block; }
+.outer { border:solid 1px; width:400px; height:200px; }
+</style>
+
+<div class='outer'>
+    <div class='inner'>Click to generate graph.</div>
+</div>
+
+<div class='outer'>
+    <img class="inner" src="http://cdn.jsdelivr.net/wp-advanced-ajax-page-loader/2.5.12/loaders/Atom%20Loading.gif">
+</div>
+
+<script>
+function gen_graph() {
+    $(this).html('<img class="inner" src="http://cdn.jsdelivr.net/wp-advanced-ajax-page-loader/2.5.12/loaders/Atom%20Loading.gif">')
+}
+$(document).on('click', '.outer', gen_graph)
+</script>
